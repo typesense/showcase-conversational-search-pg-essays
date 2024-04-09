@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "data:fetch": "cd dataset && tsx script.ts",
+    "data:seed": "tsx dataset/seed.ts"
   },
   "dependencies": {
     "react": "^18",
