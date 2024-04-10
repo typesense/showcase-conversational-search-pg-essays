@@ -34,10 +34,12 @@ async function seed() {
     ],
   });
 
-  let results;
-  results = await typesense.collections('essays').documents().import(data);
-  console.log(results);
+  for (const item of data) {
+    await typesense.collections('essays').documents().create(item);
+  }
+  console.log('Imported', data.length, 'documents');
 
+  let results;
   results = await (
     typesense.conversations().models() as ConversationModels
   ).create({
@@ -47,7 +49,6 @@ async function seed() {
       'You are an assistant for question-answering like Paul Graham. Answer questions according to the given context.',
     max_bytes: 16384,
   });
-
   console.log(results);
 }
 
