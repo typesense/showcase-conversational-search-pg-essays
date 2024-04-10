@@ -1,6 +1,6 @@
 'use client';
 
-import { Message } from '@/lib/actions';
+import type { Message } from '@/lib/actions';
 import { UserCircle } from '@phosphor-icons/react/dist/ssr';
 import { useEffect, useOptimistic } from 'react';
 import Markdown from 'react-markdown';
@@ -16,7 +16,7 @@ interface MessageProps {
   isMarkdown?: boolean;
 }
 
-function Message({
+function ChatMessage({
   sender,
   message,
   sources,
@@ -111,7 +111,7 @@ export default function Chat() {
         <div className="flex flex-col pt-6 divide-y divide-gray-100">
           {optimisticMessages.map(
             ({ sender, message, sources, isLoading }, i) => (
-              <Message
+              <ChatMessage
                 sender={
                   sender === 'user'
                     ? { name: 'You' }
