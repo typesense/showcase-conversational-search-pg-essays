@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Conversational search with Typesense + Next.js App router
 
-## Getting Started
+This demo showcases Typesense's conversational search features in a Next.js (App router) project.
 
-First, run the development server:
+## Pre-requisistes
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. [Node.js 20.x](https://nodejs.org) and npm
+2. [Typesense server](https://typesense.org/docs/guide/install-typesense.html). Can be hosted locally using the `docker-compose.yml` file in the repository, instructions in [Local Setup](#local-setup) section.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the project.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+2. Install dependencies at the root of the project using npm.
+   ```bash
+   npm install
+   ```
+3. (Optional) To run a local instance of Typesense server using the `docker-compose.yml` config in this repository, run the following command.
+   ```bash
+   docker compose up -d
+   ```
+   Note: This requires [Docker](https://www.docker.com/get-started/) to be installed on the system.
+4. Copy `.env.example` file and create a `.env` file at the root of the project.
+5. Set the values of required environment variables in the `.env` file that was created.
+6. Run the following command to create the dataset by fetching Paul Graham's essays:
+   ```bash
+   npm run data:fetch
+   ```
+7. Seed the Typesense database by running the following command.
+   ```bash
+   npm run data:seed
+   ```
+   This command may take a while depending on the size of the data.
+8. Once the Typesense database has been seeded, Next.js application can be started.
+   - **For production**:
+     ```bash
+     npm run build
+     npm start
+     ```
+   - **For development**:
+     ```bash
+     npm run dev
+     ```
+9. Access the application at `localhost:3000`.
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+- [Typesense](https://typesense.org) - learn about Typesense.
+- [Next.js](https://nextjs.org/docs) - learn about Next.js.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+TODO – Add license for demo project.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+The dataset used is [Paul Graham's essays](https://paulgraham.com/articles.html).
