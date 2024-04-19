@@ -101,7 +101,18 @@ export default function Form({ onRequest }: FormProps) {
           const response = await chat(formData);
           if (!response) return;
 
-          setConversation(response);
+          setConversation(({ messages: history }) => ({
+            id: response.id,
+            messages: [
+              ...history,
+              userMessage,
+              {
+                message: response.message,
+                sender: 'ai',
+                sources: response.sources,
+              },
+            ],
+          }));
         }}
       >
         <input hidden name="conversation_id" value={conversationId} readOnly />

@@ -21,7 +21,17 @@ export default function EmptyChat({ onRequest }: FormProps) {
     const response = await chat(formData);
     if (!response) return;
 
-    setConversation(response);
+    setConversation({
+      id: response.id,
+      messages: [
+        userMessage,
+        {
+          message: response.message,
+          sender: 'ai',
+          sources: response.sources,
+        },
+      ],
+    });
   };
   return (
     <div className="flex flex-col flex-grow items-center justify-center">

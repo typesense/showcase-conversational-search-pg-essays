@@ -69,19 +69,9 @@ export async function chat(formData: FormData) {
       'conversational response not returned when conversation query was triggered'
     );
   }
-
-  const conversationHistory =
-    response.conversation.conversation_history.conversation;
-
   return {
     id: response.conversation.conversation_id,
-    messages: conversationHistory.map<Message>((conv: any, i) => ({
-      message: conv.user ? conv.user : conv.assistant,
-      sender: conv.user ? 'user' : 'ai',
-      sources:
-        i === conversationHistory.length - 1
-          ? hitsToSources(response.hits ?? [])
-          : [],
-    })),
+    message: response.conversation.answer,
+    sources: hitsToSources(response.hits ?? []),
   };
 }
