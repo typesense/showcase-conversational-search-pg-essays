@@ -35,12 +35,12 @@ export default function EmptyChat({ onRequest }: FormProps) {
   };
   return (
     <div className="flex flex-col flex-grow items-center justify-center">
-      <h2 className="text-2xl font-semibold">
+      <h2 className="text-2xl font-semibold text-center">
         Typesense Conversational Search
       </h2>
-      <p className="mt-4 text-gray-700 text-center max-w-lg">
-        This demo showcases the AI powererd conversational search capabilities
-        of Typesense with{' '}
+      <p className="mt-4 text-gray-700 text-center max-w-lg text-balance">
+        This demo showcases the AI powered conversational search capabilities of
+        Typesense with{' '}
         <a
           href="https://paulgraham.com/articles.html"
           target="_blank"
@@ -50,10 +50,10 @@ export default function EmptyChat({ onRequest }: FormProps) {
         </a>
         .
       </p>
-      <div className="grid grid-cols-2 gap-2 mt-14">
+      <div className="grid xs:grid-cols-2 gap-2 mt-14">
         {INITIAL_MESSAGES.map((message, i) => (
           <button
-            className="rounded-lg bg-gray-100 py-2 px-4 text-xs text-left text-gray-900 hover:bg-gray-200 transition-colors"
+            className="rounded-lg bg-gray-100 py-3 xs:py-2 px-4 text-xs text-left text-gray-900 hover:bg-gray-200 transition-colors"
             key={i}
             onClick={sendMessage(message)}
           >

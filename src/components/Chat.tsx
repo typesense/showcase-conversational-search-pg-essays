@@ -51,17 +51,17 @@ function ChatMessage({
             {sources.length > 0 && (
               <div className="mt-5">
                 <h3 className="font-semibold text-sm">Sources</h3>
-                <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="mt-3 grid grid-cols-[repeat(3,minmax(10rem,1fr))] gap-2 overflow-x-auto">
                   {sources.map((source, i) => (
                     <a
                       href={source.url}
                       target="_blank"
-                      className="p-3 rounded-md bg-gray-100 text-xs hover:bg-gray-200 transition-colors"
+                      className="w-full p-3 rounded-md bg-gray-100 text-xs hover:bg-gray-200 transition-colors overflow-hidden"
                       key={i}
                     >
                       <h4 className="font-semibold truncate">{source.title}</h4>
                       <p className="text-gray-600 mt-2 line-clamp-3">
-                        {source.excerpt}
+                        {source.excerpt}...
                       </p>
                     </a>
                   ))}
@@ -72,9 +72,9 @@ function ChatMessage({
         ) : (
           // Skeleton loaders
           <div className="animate-pulse flex flex-col mt-4 gap-2">
-            <div className="w-80 h-3 rounded-full bg-gray-200" />
-            <div className="w-96 h-3 rounded-full bg-gray-200" />
-            <div className="w-[28rem] h-3 rounded-full bg-gray-200" />
+            <div className="max-w-80 w-9/12 h-2.5 xs:h-3 rounded-full bg-gray-200" />
+            <div className="max-w-96 w-10/12 h-2.5 xs:h-3 rounded-full bg-gray-200" />
+            <div className="max-w-[28rem] w-4/12 h-2.5 xs:h-3 rounded-full bg-gray-200" />
           </div>
         )}
       </div>
@@ -131,7 +131,7 @@ export default function Chat() {
         </div>
       )}
 
-      <div className="mt-auto sticky inset-x-0 bottom-0 pt-12 pb-8 bg-gradient-to-b from-transparent via-[40%] via-white to-white">
+      <div className="mt-auto sticky inset-x-0 bottom-0 pt-12 pb-4 xs:pb-8 bg-gradient-to-b from-transparent via-[40%] via-white to-white">
         <Form onRequest={addResponseLoadingPlaceholder} />
       </div>
     </main>
