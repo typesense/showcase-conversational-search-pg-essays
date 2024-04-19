@@ -9,8 +9,8 @@ const typesense = new Client({
     },
   ],
   apiKey: process.env.TYPESENSE_SEARCH_API_KEY ?? '',
-  connectionTimeoutSeconds: 120,
-  numRetries: 4,
+  // 15 minutes
+  connectionTimeoutSeconds: 15 * 60,
   logLevel: 'debug',
 });
 

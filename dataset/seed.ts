@@ -34,12 +34,10 @@ async function seed() {
     ],
   });
 
-  for (const item of data) {
-    await typesense.collections('essays').documents().create(item);
-  }
-  console.log('Imported', data.length, 'documents');
-
   let results;
+  results = await typesense.collections('essays').documents().import(data);
+  console.log(results);
+
   results = await (
     typesense.conversations().models() as ConversationModels
   ).create({
