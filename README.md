@@ -1,6 +1,6 @@
 # Conversational search with Typesense + Next.js App router
 
-This demo showcases Typesense's conversational search features in a Next.js (App router) project.
+This demo showcases Typesense's [conversational search](https://typesense.org/docs/26.0/api/conversational-search-rag.html#conversational-search-rag) features in a Next.js (App router) project.
 
 ## Pre-requisistes
 
@@ -50,6 +50,5 @@ This demo showcases Typesense's conversational search features in a Next.js (App
 
 ## License
 
-TODO – Add license for demo project.
-
-The dataset used is [Paul Graham's essays](https://paulgraham.com/articles.html).
+This project is licensed under [Apache License 2.0](https://github.com/typesense/showcase-conversational-search-pg-essays/blob/master/LICENSE).
+The dataset used is [Paul Graham's essays](https://paulgraham.com/articles.html) by Paul Graham.

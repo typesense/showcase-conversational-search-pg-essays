@@ -2,8 +2,10 @@ import Chat from '@/components/Chat';
 import ConversationContextProvider from '@/components/ConversationContext';
 import { ArrowSquareOut, GithubLogo } from '@phosphor-icons/react/dist/ssr';
 
-const ABOUT_LINK = '#';
-const SOURCE_LINK = '#';
+const ABOUT_LINK =
+  'https://github.com/typesense/showcase-conversational-search-pg-essays/blob/main/README.md';
+const SOURCE_LINK =
+  'https://github.com/typesense/showcase-conversational-search-pg-essays';
 
 export default function Home() {
   return (
