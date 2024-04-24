@@ -9,8 +9,7 @@ const getModel = (() => {
   return async () => {
     if (model) return model;
 
-    // TODO: Fix the return type issue here
-    const models = (await typesense.conversations().models().retrieve()) as any;
+    const models = await typesense.conversations().models().retrieve();
     model = models[0];
     return model;
   };
