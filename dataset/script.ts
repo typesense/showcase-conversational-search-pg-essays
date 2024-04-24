@@ -4,6 +4,7 @@ import { writeFile } from 'node:fs/promises';
 const essays: { title: string; text: string; url: string }[] = [];
 
 async function visit(url: string) {
+  console.log(`Visiting ${url}`);
   const response = await fetch(url);
   return load(await response.text());
 }
@@ -26,7 +27,10 @@ async function visitHome() {
   );
 
   for (const link of links) {
-    await visitPage(`https://paulgraham.com/${link.attributes[0].value}`);
+    const slug = link.attributes[0].value;
+    if (slug.startsWith('http')) continue;
+
+    await visitPage(`https://paulgraham.com/${slug}`);
   }
 }
 
@@ -35,4 +39,6 @@ async function visitHome() {
 
   const data = JSON.stringify(essays, null, 4);
   await writeFile('data.json', data);
+
+  console.log(`✅ ${essays.length} essays found`);
 })();
