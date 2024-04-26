@@ -26,13 +26,13 @@ This demo showcases Typesense's [conversational search](https://typesense.org/do
    ```bash
    npm run data:fetch
    ```
-7. Seed the Typesense database by running the following command.
+7. Import the data into Typesense by running the following command.
    ```bash
-   npm run data:seed
+   npm run data:index
    ```
    This command may take a while depending on the size of the data.
 8. The script will output a conversational model ID, which you want to set as the `TYPESENSE_CONVERSATION_MODEL_ID` in your `.env` file. 
-9. Once the Typesense database has been seeded, Next.js application can be started.
+9. Now start the Next.js application.
    - **For production**:
      ```bash
      npm run build

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "data:fetch": "cd dataset && tsx script.ts",
-    "data:seed": "tsx dataset/seed.ts"
+    "data:index": "tsx dataset/index.ts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.0.15",
