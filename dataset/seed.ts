@@ -55,7 +55,7 @@ async function seed() {
   results = await (
     typesense.conversations().models() as ConversationModels
   ).create({
-    model_name: 'openai/gpt-3.5-turbo',
+    model_name: 'openai/gpt-4-turbo',
     api_key: process.env.OPENAI_API_KEY ?? '',
     system_prompt:
       'You are an assistant for question-answering like Paul Graham. You can only make conversations based on the provided context. If a response cannot be formed strictly using the context, politely say you don’t have knowledge about that topic.',
