@@ -21,7 +21,7 @@ This demo showcases Typesense's [conversational search](https://typesense.org/do
    ```
    Note: This requires [Docker](https://www.docker.com/get-started/) to be installed on the system.
 4. Copy `.env.example` file and create a `.env` file at the root of the project.
-5. Set the values of required environment variables in the `.env` file that was created.
+5. Set the values of required environment variables in the `.env` file that was created. (Skip the `TYPESENSE_CONVERSATION_MODEL_ID` env variable for now, we'll come back to it).
 6. Run the following command to create the dataset by fetching Paul Graham's essays:
    ```bash
    npm run data:fetch
@@ -31,7 +31,8 @@ This demo showcases Typesense's [conversational search](https://typesense.org/do
    npm run data:seed
    ```
    This command may take a while depending on the size of the data.
-8. Once the Typesense database has been seeded, Next.js application can be started.
+8. The script will output a conversational model ID, which you want to set as the `TYPESENSE_CONVERSATION_MODEL_ID` in your `.env` file. 
+9. Once the Typesense database has been seeded, Next.js application can be started.
    - **For production**:
      ```bash
      npm run build
@@ -41,7 +42,7 @@ This demo showcases Typesense's [conversational search](https://typesense.org/do
      ```bash
      npm run dev
      ```
-9. Access the application at `localhost:3000`.
+10. Access the application at `localhost:3000`.
 
 ## Learn More
 

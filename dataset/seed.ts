@@ -1,15 +1,29 @@
 import 'dotenv/config';
-import typesense from '@/lib/typesense';
+import Typesense from 'typesense';
 import ConversationModels from 'typesense/lib/Typesense/ConversationModels';
 import data from './data.json';
 
+const typesense = new Typesense.Client({
+  nodes: [
+    {
+      host: process.env.TYPESENSE_HOST ?? 'localhost',
+      port: Number(process.env.TYPESENSE_PORT ?? 8108),
+      protocol: process.env.TYPESENSE_PROTOCOL ?? 'http',
+    },
+  ],
+  apiKey: process.env.TYPESENSE_ADMIN_API_KEY ?? '',
+  // 15 minutes
+  connectionTimeoutSeconds: 15 * 60,
+  logLevel: 'debug',
+});
+
 async function seed() {
-  if (await typesense.collections('essays').exists()) {
-    await typesense.collections('essays').delete();
+  if (await typesense.collections('pg-essays').exists()) {
+    await typesense.collections('pg-essays').delete();
   }
 
   await typesense.collections().create({
-    name: 'essays',
+    name: 'pg-essays',
     fields: [
       {
         name: 'title',
@@ -35,7 +49,7 @@ async function seed() {
   });
 
   let results;
-  results = await typesense.collections('essays').documents().import(data);
+  results = await typesense.collections('pg-essays').documents().import(data);
   console.log(results);
 
   results = await (
@@ -48,6 +62,7 @@ async function seed() {
     max_bytes: 16384,
   });
   console.log(results);
+  console.log("👉 Set the `TYPESENSE_CONVERSATION_MODEL_ID` env variable to the `id` field of the conversational model above.")
 }
 
 seed();

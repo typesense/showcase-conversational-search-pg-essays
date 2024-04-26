@@ -1,19 +1,7 @@
 'use server';
 
-import { ConversationModelSchema } from 'typesense/lib/Typesense/ConversationModel';
 import typesense from './typesense';
 import { SearchResponseHit } from 'typesense/lib/Typesense/Documents';
-
-const getModel = (() => {
-  let model: ConversationModelSchema;
-  return async () => {
-    if (model) return model;
-
-    const models = await typesense.conversations().models().retrieve();
-    model = models[0];
-    return model;
-  };
-})();
 
 export interface Message {
   sender: 'user' | 'ai';
@@ -52,13 +40,13 @@ export async function chat(formData: FormData) {
   if (typeof message !== 'string') return;
 
   const response = await typesense
-    .collections<EssayDocument>('essays')
+    .collections<EssayDocument>('pg-essays')
     .documents()
     .search({
       q: message,
       query_by: 'embedding',
       conversation: true,
-      conversation_model_id: (await getModel()).id,
+      conversation_model_id: process.env.TYPESENSE_CONVERSATION_MODEL_ID,
       conversation_id:
         typeof conversationId === 'string' ? conversationId : undefined,
     });
