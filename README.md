@@ -2,7 +2,7 @@
 
 This demo showcases Typesense's [conversational search](https://typesense.org/docs/26.0/api/conversational-search-rag.html#conversational-search-rag) features in a Next.js (App router) project.
 
-## Pre-requisistes
+## Pre-requisites
 
 1. [Node.js 20.x](https://nodejs.org) and npm
 2. [Typesense server](https://typesense.org/docs/guide/install-typesense.html). Can be hosted locally using the `docker-compose.yml` file in the repository, instructions in [Local Setup](#local-setup) section.
