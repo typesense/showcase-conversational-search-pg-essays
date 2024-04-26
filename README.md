@@ -6,6 +6,8 @@ The dataset contains [essays](https://paulgraham.com/articles.html) authored by 
 
 Questions are sent directly Typesense, which has a built-in RAG pipeline to return a conversation response, using the indexed dataset as context.  
 
+Live Demo: [conversational-search-pg-essays.typesense.org](https://conversational-search-pg-essays.typesense.org)
+
 ## Pre-requisites
 
 1. [Node.js 20.x](https://nodejs.org) and npm
