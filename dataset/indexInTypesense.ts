@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import Typesense from 'typesense';
 import ConversationModels from 'typesense/lib/Typesense/ConversationModels';
-import data from './data.json';
 
 const typesense = new Typesense.Client({
   nodes: [
@@ -21,6 +20,8 @@ async function indexInTypesense() {
   if (await typesense.collections('pg-essays').exists()) {
     await typesense.collections('pg-essays').delete();
   }
+
+  const data = require('./data.json');
 
   await typesense.collections().create({
     name: 'pg-essays',
