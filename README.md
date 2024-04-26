@@ -24,11 +24,11 @@ This demo showcases Typesense's [conversational search](https://typesense.org/do
 5. Set the values of required environment variables in the `.env` file that was created. (Skip the `TYPESENSE_CONVERSATION_MODEL_ID` env variable for now, we'll come back to it).
 6. Run the following command to create the dataset by fetching Paul Graham's essays:
    ```bash
-   npm run data:fetch
+   npm run fetchData
    ```
 7. Import the data into Typesense by running the following command.
    ```bash
-   npm run data:index
+   npm run indexInTypesense
    ```
    This command may take a while depending on the size of the data.
 8. The script will output a conversational model ID, which you want to set as the `TYPESENSE_CONVERSATION_MODEL_ID` in your `.env` file. 

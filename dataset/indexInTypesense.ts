@@ -17,7 +17,7 @@ const typesense = new Typesense.Client({
   logLevel: 'debug',
 });
 
-async function index() {
+async function indexInTypesense() {
   if (await typesense.collections('pg-essays').exists()) {
     await typesense.collections('pg-essays').delete();
   }
@@ -65,4 +65,4 @@ async function index() {
   console.log("👉 Set the `TYPESENSE_CONVERSATION_MODEL_ID` env variable to the `id` field of the conversational model above.")
 }
 
-index();
+indexInTypesense();

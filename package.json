@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "data:fetch": "cd dataset && tsx script.ts",
-    "data:index": "tsx dataset/index.ts"
+    "fetchData": "cd dataset && tsx fetchData.ts",
+    "indexInTypesense": "tsx dataset/indexInTypesense.ts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.0.15",
