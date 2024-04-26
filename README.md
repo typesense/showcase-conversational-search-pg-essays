@@ -1,6 +1,10 @@
 # Conversational search with Typesense + Next.js App router
 
-This demo showcases Typesense's [conversational search](https://typesense.org/docs/26.0/api/conversational-search-rag.html#conversational-search-rag) features in a Next.js (App router) project.
+This demo showcases Typesense's [conversational search](https://typesense.org/docs/26.0/api/conversational-search-rag.html#conversational-search-rag) features.
+
+The dataset contains [essays](https://paulgraham.com/articles.html) authored by [Paul Graham](https://twitter.com/paulg), indexed in Typesense. 
+
+Questions are sent directly Typesense, which has a built-in RAG pipeline to return a conversation response, using the indexed dataset as context.  
 
 ## Pre-requisites
 
