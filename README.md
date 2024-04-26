@@ -46,8 +46,8 @@ This demo showcases Typesense's [conversational search](https://typesense.org/do
 
 ## Learn More
 
-- [Typesense](https://typesense.org) - learn about Typesense.
-- [Next.js](https://nextjs.org/docs) - learn about Next.js.
+- [Typesense](https://typesense.org)
+- [Conversational Search in Typesense](https://typesense.org/docs/latest/api/conversational-search-rag.html)
 
 ## License
 
