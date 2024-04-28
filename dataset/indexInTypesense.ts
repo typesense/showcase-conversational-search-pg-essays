@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import Typesense from 'typesense';
-import ConversationModels from 'typesense/lib/Typesense/ConversationModels';
 
 const typesense = new Typesense.Client({
   nodes: [
@@ -53,17 +52,20 @@ async function indexInTypesense() {
   results = await typesense.collections('pg-essays').documents().import(data);
   console.log(results);
 
-  results = await (
-    typesense.conversations().models() as ConversationModels
-  ).create({
-    model_name: 'openai/gpt-4-turbo',
-    api_key: process.env.OPENAI_API_KEY ?? '',
-    system_prompt:
-      'You are an assistant for question-answering like Paul Graham. You can only make conversations based on the provided context. If a response cannot be formed strictly using the context, politely say you don’t have knowledge about that topic.',
-    max_bytes: 16384,
-  });
+  results = await typesense
+    .conversations()
+    .models()
+    .create({
+      model_name: 'openai/gpt-4-turbo',
+      api_key: process.env.OPENAI_API_KEY ?? '',
+      system_prompt:
+        'You are an assistant for question-answering like Paul Graham. You can only make conversations based on the provided context. If a response cannot be formed strictly using the context, politely say you don’t have knowledge about that topic.',
+      max_bytes: 16384,
+    });
   console.log(results);
-  console.log("👉 Set the `TYPESENSE_CONVERSATION_MODEL_ID` env variable to the `id` field of the conversational model above.")
+  console.log(
+    '👉 Set the `TYPESENSE_CONVERSATION_MODEL_ID` env variable to the `id` field of the conversational model above.'
+  );
 }
 
 indexInTypesense();
