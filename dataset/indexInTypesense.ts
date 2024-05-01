@@ -41,7 +41,7 @@ async function indexInTypesense() {
         embed: {
           from: ['title', 'text'],
           model_config: {
-            model_name: 'ts/all-MiniLM-L12-v2',
+            model_name: 'ts/snowflake-arctic-embed-m',
           },
         },
       },
