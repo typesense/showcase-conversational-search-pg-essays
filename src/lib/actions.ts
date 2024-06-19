@@ -45,8 +45,9 @@ export async function chat(formData: FormData) {
     .search({
       q: message,
       query_by: 'embedding',
+      conversation_model_id: 'gpt-4-turbo-model',
+      // conversation_model_id: 'llama-2-model',
       conversation: true,
-      conversation_model_id: process.env.TYPESENSE_CONVERSATION_MODEL_ID,
       conversation_id:
         typeof conversationId === 'string' ? conversationId : undefined,
     });
