@@ -106,10 +106,13 @@ async function indexInTypesense() {
   }
 
   // Create the LLM-powered conversation model resource
+  const conversationModelName = 'gpt-4-turbo-model'
+  // const conversationModelName = 'llama-3-8b-instruct'
+
   try {
-    results = await typesense.conversations().models('gpt-4-turbo-model').retrieve()
+    results = await typesense.conversations().models(conversationModelName).retrieve()
     console.log('Conversation model already exists, so deleting it')
-    results = await typesense.conversations().models('gpt-4-turbo-model').delete()
+    results = await typesense.conversations().models(conversationModelName).delete()
   } catch (e) {
     if(e instanceof Typesense.Errors.ObjectNotFound) {
       console.log("Conversation model not found, so creating it...")
@@ -120,25 +123,21 @@ async function indexInTypesense() {
   } finally {
     console.log('Creating conversation model')
     const modelCreateParameters = {
-      // OpenAI gpt-4-turbo
-      // @ts-ignore
-      id: 'gpt-4-turbo-model',
-      model_name: 'openai/gpt-4-turbo',
-      api_key: process.env.OPENAI_API_KEY ?? '',
-      max_bytes: 16384,
-
-      // Llama model hosted on Cloudflare
-      // @ts-ignore
-      // id: 'llama-2-model',
-      // model_name: 'cloudflare/@cf/meta/llama-2-7b-chat-fp16',
-      // max_bytes: 6000,
-      // account_id: process.env.CLOUDFLARE_ACCOUNT_ID ?? '',
-      // api_key: process.env.CLOUDFLARE_API_KEY ?? '',
-
+      id: conversationModelName,
       system_prompt:
           "You are an assistant for question-answering like Paul Graham. You can only make conversations based on the provided context. If a response cannot be formed strictly using the context, politely say you don't have knowledge about that topic. Do not answer questions that are not strictly on the topic of Paul Graham's essays.",
-      // @ts-ignore
-      conversation_collection: conversationHistoryCollectionName
+      history_collection: conversationHistoryCollectionName,
+
+      /*** OpenAI gpt-4-turbo ***/
+      model_name: 'openai/gpt-4-turbo',
+      max_bytes: 16384,
+      api_key: process.env.OPENAI_API_KEY ?? '',
+
+      /*** Llama model hosted on Cloudflare ***/
+      // model_name: 'cloudflare/@cf/meta/llama-3-8b-instruct',
+      // max_bytes: 16384,
+      // account_id: process.env.CLOUDFLARE_ACCOUNT_ID ?? '',
+      // api_key: process.env.CLOUDFLARE_API_KEY ?? '',
     }
     // console.log(JSON.stringify(modelCreateParameters, null, 2));
     results = await typesense.conversations().models().create(modelCreateParameters);
