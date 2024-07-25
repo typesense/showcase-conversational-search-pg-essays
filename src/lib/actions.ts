@@ -55,8 +55,8 @@ export async function chat(formData: FormData) {
     });
 
   return {
-    id: response?.conversation?.conversation_id,
-    message: response?.conversation?.answer,
+    id: response?.conversation?.conversation_id || 'NA',
+    message: response?.conversation?.answer || 'NA',
     sources: hitsToSources(response?.hits ?? []),
     response: response
   };
