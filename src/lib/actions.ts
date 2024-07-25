@@ -48,6 +48,7 @@ export async function chat(formData: FormData) {
     .search({
       q: message,
       query_by: 'embedding',
+      exclude_fields: 'embedding',
       conversation_model_id: conversationModelName,
       conversation: true,
       conversation_id:
@@ -55,8 +56,8 @@ export async function chat(formData: FormData) {
     });
 
   return {
-    id: response?.conversation?.conversation_id || 'NA',
-    message: response?.conversation?.answer || 'NA',
+    id: response?.conversation?.conversation_id || 'Could not find conversation_id in response.',
+    message: response?.conversation?.answer || 'Could not find answer in response.',
     sources: hitsToSources(response?.hits ?? []),
     response: response
   };
