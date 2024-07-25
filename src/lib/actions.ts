@@ -54,15 +54,10 @@ export async function chat(formData: FormData) {
         typeof conversationId === 'string' ? conversationId : undefined,
     });
 
-  if (!response.conversation) {
-    console.log(JSON.stringify(response));
-    throw new Error(
-      'conversational response not returned when conversation query was triggered'
-    );
-  }
   return {
-    id: response.conversation.conversation_id,
-    message: response.conversation.answer,
-    sources: hitsToSources(response.hits ?? []),
+    id: response?.conversation?.conversation_id,
+    message: response?.conversation?.answer,
+    sources: hitsToSources(response?.hits ?? []),
+    response: response
   };
 }
