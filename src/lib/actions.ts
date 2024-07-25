@@ -55,6 +55,7 @@ export async function chat(formData: FormData) {
     });
 
   if (!response.conversation) {
+    console.log(JSON.stringify(response));
     throw new Error(
       'conversational response not returned when conversation query was triggered'
     );
