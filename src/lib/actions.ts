@@ -42,7 +42,7 @@ export async function chat(formData: FormData) {
   const conversationModelName = 'gpt-4-turbo-model'
   // const conversationModelName = 'llama-3-8b-instruct'
 
-  const response = await typesense
+  let response = await typesense
     .collections<EssayDocument>('pg-essays')
     .documents()
     .search({
@@ -54,6 +54,11 @@ export async function chat(formData: FormData) {
       conversation_id:
         typeof conversationId === 'string' ? conversationId : undefined,
     });
+
+  // In edge runtime, response is a JSON string
+  if (typeof response === "string") {
+    response = JSON.parse(response);
+  }
 
   return {
     id: response?.conversation?.conversation_id || 'Could not find conversation_id in response.',
