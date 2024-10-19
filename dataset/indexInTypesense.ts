@@ -58,7 +58,10 @@ async function createConversationHistoryCollection(conversationStoreCollectionNa
       {
         name: "conversation_id",
         type: <const> "string",
-        facet: true
+      },
+      {
+        name: "model_id",
+        type: <const> "string",
       },
       {
         name: "role",
