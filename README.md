@@ -1,6 +1,3 @@
-> [!NOTE]
-> Work in progress 🚧
-
 # Conversational search with Typesense + Next.js App router
 
 This demo showcases Typesense's [conversational search](https://typesense.org/docs/26.0/api/conversational-search-rag.html#conversational-search-rag) features.
