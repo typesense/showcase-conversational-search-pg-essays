@@ -2,7 +2,6 @@ import Chat from '@/components/Chat';
 import ConversationContextProvider from '@/components/ConversationContext';
 import { ArrowSquareOut, GithubLogo } from '@phosphor-icons/react/dist/ssr';
 
-export const runtime = 'edge'; // for Cloudflare Pages
 
 const ABOUT_LINK =
   'https://github.com/typesense/showcase-conversational-search-pg-essays/blob/main/README.md';
