@@ -36,7 +36,7 @@ export default function EmptyChat({ onRequest }: FormProps) {
   return (
     <div className="flex flex-col flex-grow items-center justify-center">
       <h2 className="text-2xl font-semibold text-center">
-        Typesense Conversational Search
+        Conversational Search on PG Essays
       </h2>
       <p className="mt-4 text-gray-700 text-center max-w-lg text-balance">
         This demo showcases the AI powered conversational search capabilities of
