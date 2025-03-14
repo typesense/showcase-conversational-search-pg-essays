@@ -83,7 +83,7 @@ function ChatMessage({
 }
 
 export default function Chat() {
-  const [{ messages }] = useConversationState();
+  const [{ messages }, setConversation] = useConversationState();
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
     messages,
     (state, newMessages: Message[]) => [...state, ...newMessages]
@@ -132,7 +132,7 @@ export default function Chat() {
       )}
 
       <div className="mt-auto sticky inset-x-0 bottom-0 pt-12 pb-4 xs:pb-8 bg-gradient-to-b from-transparent via-[40%] via-white to-white">
-        <Form onRequest={addResponseLoadingPlaceholder} />
+        <Form onRequest={addResponseLoadingPlaceholder} onSubmitted={setConversation} />
       </div>
     </main>
   );

@@ -20,9 +20,9 @@ interface EssayDocument {
   url: string;
 }
 
-function hitsToSources(
+export async function hitsToSources(
   hits: SearchResponseHit<EssayDocument>[]
-): Message['sources'] {
+): Promise<Message['sources']> {
   return hits.slice(0, 3).map((hit) => ({
     title: hit.document.title,
     excerpt: hit.document.text
