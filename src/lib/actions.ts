@@ -1,7 +1,10 @@
 'use server';
 
-import typesense from './typesense';
-import { SearchResponseHit } from 'typesense/lib/Typesense/Documents';
+import typesense from "./typesense";
+import {
+  DocumentSchema,
+  SearchResponseHit,
+} from "typesense/lib/Typesense/Documents";
 
 export interface Message {
   sender: 'user' | 'ai';
@@ -21,17 +24,19 @@ interface EssayDocument {
 }
 
 export async function hitsToSources(
-  hits: SearchResponseHit<EssayDocument>[]
-): Promise<Message['sources']> {
-  return hits.slice(0, 3).map((hit) => ({
-    title: hit.document.title,
-    excerpt: hit.document.text
-      .split('\n')
-      .slice(1, 10)
-      .join('\n')
-      .slice(0, 100),
-    url: hit.document.url,
-  }));
+  hits?: SearchResponseHit<DocumentSchema>[]
+): Promise<Message["sources"]> {
+  return (
+    hits?.slice(0, 3).map((hit) => ({
+      title: hit.document.title,
+      excerpt: hit.document.text
+        .split("\n")
+        .slice(1, 10)
+        .join("\n")
+        .slice(0, 100),
+      url: hit.document.url,
+    })) ?? []
+  );
 }
 
 export async function chat(formData: FormData) {

@@ -132,7 +132,7 @@ export default function Chat() {
       )}
 
       <div className="mt-auto sticky inset-x-0 bottom-0 pt-12 pb-4 xs:pb-8 bg-gradient-to-b from-transparent via-[40%] via-white to-white">
-        <Form onRequest={addResponseLoadingPlaceholder} onSubmitted={setConversation} />
+        <Form />
       </div>
     </main>
   );
