@@ -1,125 +1,138 @@
-import { Message, chat, hitsToSources } from '@/lib/actions';
-import { useConversationState } from './ConversationContext';
-import { FormProps } from './Form';
+"use client";
+
+import { Message, hitsToSources } from "@/lib/actions";
+import { useConversationState } from "./ConversationContext";
+import { Client } from "typesense";
+import { useCallback, useMemo, useRef } from "react";
+import { SearchParams } from "typesense/lib/Typesense/Types";
+import type { FormProps } from "@/components/Form";
+import { DocumentSchema, SearchResponse } from "typesense/lib/Typesense/Documents";
 
 const INITIAL_MESSAGES = [
   "What is the Maker's Schedule?",
-  'What are the characteristics of a good startup idea?',
-  'What are the advantages and disadvantages of a startup being located in Silicon Valley?',
-  'Perspective on the role of hacker culture in society',
+  "What are the characteristics of a good startup idea?",
+  "What are the advantages and disadvantages of a startup being located in Silicon Valley?",
+  "Perspective on the role of hacker culture in society",
 ];
+
+const TYPESENSE_CONFIG = {
+  nodes: [
+    {
+      host: process.env.NEXT_PUBLIC_TYPESENSE_HOST ?? "localhost",
+      port: Number(process.env.NEXT_PUBLIC_TYPESENSE_PORT ?? 8108),
+      protocol: process.env.NEXT_PUBLIC_TYPESENSE_PROTOCOL ?? "http",
+    },
+  ],
+  connectionTimeoutSeconds: 180,
+  apiKey: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY ?? "",
+};
 
 export default function EmptyChat({ onRequest }: FormProps) {
   const [conversation, setConversation] = useConversationState();
 
-  const sendMessage = (message: string) => async () => {
-    const userMessage: Message = { message, sender: 'user', sources: [] };
-    onRequest(userMessage);
+  const messageRef = useRef("");
+  const sourcesRef = useRef<Message["sources"]>([]);
+  const conversationIdRef = useRef<string | undefined>(undefined);
 
-    const formData = new FormData();
-    formData.set('message', message);
-    // const response = await chat(formData);
-    // if (!response) return;
+  const typesenseClient = useMemo(() => new Client(TYPESENSE_CONFIG), []);
 
-    // setConversation({
-    //   id: response.id,
-    //   messages: [
-    //     userMessage,
-    //     {
-    //       message: response.message,
-    //       sender: 'ai',
-    //       sources: response.sources,
-    //     },
-    //   ],
-    // });
-    console.log("Sending message to Typesense")
-    console.log(process.env);
-    let response = "";
-    let params: string[][] = [
-      ['q', message],
-      ['query_by', 'embedding'],
-      ['conversation', 'true'],
-      ['conversation_model_id', process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID ?? ''],
-      ['conversation_stream', 'true'],
-      ['exclude_fields', 'embedding']
-    ]
-    // if (conversationId) {
-    //   params.push(['conversation_id', conversationId])
-    // }
-    let search_params = new URLSearchParams(params).toString()
-    let url = new URL("http://localhost:8109/collections/pg-essays/documents/search")
-    url.search = search_params
-    const apiResponse = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'x-typesense-api-key': process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY ?? ''
-      }
-    })
+  const sendMessage = useCallback(
+    async (message: string) => {
+      const userMessage: Message = { message, sender: "user", sources: [] };
+      onRequest(userMessage);
 
-    let reader = await apiResponse.body?.getReader();
-    let decoder = new TextDecoder();
+      const currentHistory = conversation.messages;
+      const id = conversation.id;
 
-    let isStreaming = true;
-    let buffer = '';
-    let currentMessage = '';
-    setConversation(({ messages: history }) => ({
-      id: conversation.id,
-      messages: [
-        ...history,
-        userMessage,
-      ],
-    }));
-    let currentHistory = conversation.messages;
+      conversationIdRef.current = id;
 
-        while (true) {
-          const { done, value } = await reader?.read();
-          if (done) {
-            isStreaming = false;
-            break;
-          }
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-          for (const line of lines) {
-            response = line;
-            if(line === "data: [DONE]") {
-              isStreaming = false;
-              continue;
-            }
-            try {
-              let json_response = JSON.parse(response.slice(6))
-              let hits:any = [];
-              let conversation_id = "";
-              if(!isStreaming) {
-                // then this is search results
-                hits = await hitsToSources(json_response.hits ?? []);
-                conversation_id = json_response.conversation.conversation_id?.toString();
-              } else {
-                conversation_id = json_response.conversation_id?.toString();
-                let answer = json_response.message;
-                currentMessage += answer;
+      setConversation({
+        id,
+        messages: [...currentHistory, userMessage],
+      });
+
+      try {
+        const searchParams: SearchParams = {
+          q: message,
+          query_by: "embedding",
+          conversation: true,
+          conversation_model_id:
+            process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID ??
+            "gpt-4-turbo-model",
+          conversation_stream: true,
+          exclude_fields: "embedding",
+        };
+
+        if (id) {
+          searchParams.conversation_id = id;
+        }
+
+        const streamingClient = new Client({
+          ...TYPESENSE_CONFIG,
+          streamConfig: {
+            onChunk: (data: { conversation_id: string; message: string }) => {
+              messageRef.current += data.message;
+              if (data.conversation_id) {
+                conversationIdRef.current = data.conversation_id;
               }
-              setConversation(({ messages: history }) => ({
-                id: conversation_id,
+
+              setConversation({
+                id: conversationIdRef.current || "",
                 messages: [
                   ...currentHistory,
                   userMessage,
                   {
-                    message: currentMessage,
-                    sender: 'ai',
-                    sources: hits
+                    message: messageRef.current,
+                    sender: "ai",
+                    sources: sourcesRef.current,
                   },
                 ],
-              }));
-              ref.current?.reset();
-              //console.log("conversation: ", getConversation())
-            } catch (e) {
-              console.log(response)
-            }
-    
-          }
-        }
-  };
+              });
+            },
+            onComplete: async (data: SearchResponse<DocumentSchema>) => {
+              if (data.hits && data.conversation) {
+                sourcesRef.current = await hitsToSources(data.hits);
+                conversationIdRef.current =
+                  data.conversation.conversation_id?.toString();
+
+                setConversation({
+                  id: conversationIdRef.current || "",
+                  messages: [
+                    ...currentHistory,
+                    userMessage,
+                    {
+                      message: messageRef.current,
+                      sender: "ai",
+                      sources: sourcesRef.current,
+                    },
+                  ],
+                });
+              }
+            },
+            onError: (error: Error) => {
+              console.error("Error during conversation stream:", error);
+            },
+          },
+        });
+
+        await streamingClient
+          .collections("pg-essays")
+          .documents()
+          .search(searchParams);
+      } catch (error) {
+        console.error("Error during conversation:", error);
+      }
+    },
+    [conversation, onRequest, setConversation, typesenseClient]
+  );
+
+  const createMessageHandler = useCallback(
+    (message: string) => () => {
+      sendMessage(message);
+    },
+    [sendMessage]
+  );
+
   return (
     <div className="flex flex-col flex-grow items-center justify-center">
       <h2 className="text-2xl font-semibold text-center">
@@ -127,7 +140,7 @@ export default function EmptyChat({ onRequest }: FormProps) {
       </h2>
       <p className="mt-4 text-gray-700 text-center max-w-lg text-balance">
         This demo showcases the AI powered conversational search capabilities of
-        Typesense with{' '}
+        Typesense with{" "}
         <a
           href="https://paulgraham.com/articles.html"
           target="_blank"
@@ -138,11 +151,11 @@ export default function EmptyChat({ onRequest }: FormProps) {
         .
       </p>
       <div className="grid xs:grid-cols-2 gap-2 mt-14">
-        {INITIAL_MESSAGES.map((message, i) => (
+        {INITIAL_MESSAGES.map((message, index) => (
           <button
             className="rounded-lg bg-gray-100 py-3 xs:py-2 px-4 text-xs text-left text-gray-900 hover:bg-gray-200 transition-colors"
-            key={i}
-            onClick={sendMessage(message)}
+            key={index}
+            onClick={createMessageHandler(message)}
           >
             {message}
           </button>

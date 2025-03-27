@@ -1,11 +1,19 @@
-'use client';
+"use client";
 
-import { Message, chat, hitsToSources } from '@/lib/actions';
-import { PaperPlaneRight } from '@phosphor-icons/react';
-import autosize from 'autosize';
-import { KeyboardEventHandler, useContext, useEffect, useRef } from 'react';
-import { useFormStatus } from 'react-dom';
-import { ConversationContext, useConversationState } from './ConversationContext';
+import { Message, hitsToSources } from "@/lib/actions";
+import { PaperPlaneRight } from "@phosphor-icons/react";
+import autosize from "autosize";
+import {
+  KeyboardEventHandler,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useFormStatus } from "react-dom";
+import { ConversationContext } from "./ConversationContext";
+import { Client } from "typesense";
+import { SearchParams } from "typesense/lib/Typesense/Types";
 
 function Textarea() {
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -19,7 +27,7 @@ function Textarea() {
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (!ref.current) return;
 
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
 
       if (!pending) {
@@ -36,6 +44,7 @@ function Textarea() {
       rows={1}
       placeholder="Ask Typesense..."
       onKeyDown={handleKeyDown}
+      disabled={pending}
       required
     />
   );
@@ -80,127 +89,111 @@ export interface FormProps {
   onRequest: (user: Message) => void;
 }
 
-export default function Form({ onRequest }: FormProps) {
+export default function Form() {
   const ref = useRef<HTMLFormElement>(null);
   const [conversation, setConversation] = useContext(ConversationContext);
+  const [isPending, setIsPending] = useState(false);
   let id = conversation.id;
 
-  useEffect(() => {
-    conversation;
-  }, [conversation]);
+  const updateForm = async (formData: FormData) => {
+    const message = formData.get("message");
+    if (typeof message !== "string") return;
 
-  const updateForm =  async (formData: any) => {
-    const message = formData.get('message');
-    if (typeof message !== 'string') return;
+    setIsPending(true);
+    const userMessage: Message = { message, sender: "user", sources: [] };
 
-    const userMessage: Message = { message, sender: 'user', sources: [] };
-    //onRequest(userMessage);
-
-    //ref.current?.reset();
-    let response = "";
-    let params: string[][] = [
-      ['q', message],
-      ['query_by', 'embedding'],
-      ['conversation', 'true'],
-      ['conversation_model_id', process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID ?? ''],
-      ['conversation_stream', 'true'],
-      ['exclude_fields', 'embedding']
-    ]
-    if (id) {
-      params.push(['conversation_id', id])
-    }
-    // if (conversationId) {
-    //   params.push(['conversation_id', conversationId])
-    // }
-    let search_params = new URLSearchParams(params).toString()
-    let url = new URL("http://localhost:8109/collections/pg-essays/documents/search")
-    url.search = search_params
-    const apiResponse = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'x-typesense-api-key': process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY ?? ''
-      }
-    })
-
-    let reader = await apiResponse.body?.getReader();
-    let decoder = new TextDecoder();
-
-    let isStreaming = true;
-    let buffer = '';
-    let currentMessage = '';
     setConversation(({ messages: history }) => ({
       id: conversation.id,
-      messages: [
-        ...history,
-        userMessage,
-      ],
+      messages: [...history, userMessage],
     }));
-    let currentHistory = conversation.messages;
-    console.log("currentHistory", currentHistory)
-    while (true) {
-      const { done, value } = await reader?.read();
-      if (done) {
-        isStreaming = false;
-        break;
-      }
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-      for (const line of lines) {
-        response = line;
-        if(line === "data: [DONE]") {
-          isStreaming = false;
-          continue;
-        }
-        try {
-          let json_response = JSON.parse(response.slice(6))
-          let hits:any = [];
-          let conversation_id = "";
-          if(!isStreaming) {
-            // then this is search results
-            hits = await hitsToSources(json_response.hits ?? []);
-            conversation_id = json_response.conversation.conversation_id?.toString();
-          } else {
-            conversation_id = json_response.conversation_id?.toString();
-            let answer = json_response.message;
-            currentMessage += answer;
-          }
-          setConversation(({ messages: history }) => ({
-            id: conversation_id,
-            messages: [
-              ...currentHistory,
-              userMessage,
-              {
-                message: currentMessage,
-                sender: 'ai',
-                sources: hits
-              },
-            ],
-          }));
-          ref.current?.reset();
-          //console.log("conversation: ", getConversation())
-        } catch (e) {
-          console.log(response)
-        }
 
+    const currentHistory = conversation.messages;
+
+    try {
+      const searchParams: SearchParams = {
+        q: message,
+        query_by: "embedding",
+        conversation: true,
+        conversation_model_id: "gpt-4-turbo-model",
+        conversation_stream: true,
+        exclude_fields: "embedding",
+      };
+
+      if (id) {
+        searchParams.conversation_id = id;
       }
+
+      let currentMessage = "";
+      let currentSources: Message["sources"] = [];
+      let conversationId = id;
+
+      const streamingClient = new Client({
+        apiKey: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY ?? "",
+        nodes: [
+          {
+            host: process.env.NEXT_PUBLIC_TYPESENSE_HOST ?? "localhost",
+            port: Number(process.env.NEXT_PUBLIC_TYPESENSE_PORT ?? 8108),
+            protocol: process.env.NEXT_PUBLIC_TYPESENSE_PROTOCOL ?? "http",
+          },
+        ],
+        streamConfig: {
+          onChunk: (data: { conversation_id: string; message: string }) => {
+            currentMessage += data.message;
+            if (data.conversation_id) {
+              conversationId = data.conversation_id;
+            }
+
+            setConversation({
+              id: conversationId,
+              messages: [
+                ...currentHistory,
+                userMessage,
+                {
+                  message: currentMessage,
+                  sender: "ai",
+                  sources: currentSources,
+                },
+              ],
+            });
+          },
+          onComplete: async (data: any) => {
+            if (data.hits && data.conversation) {
+              currentSources = await hitsToSources(data.hits);
+              conversationId = data.conversation.conversation_id?.toString();
+
+              setConversation({
+                id: conversationId,
+                messages: [
+                  ...currentHistory,
+                  userMessage,
+                  {
+                    message: currentMessage,
+                    sender: "ai",
+                    sources: currentSources,
+                  },
+                ],
+              });
+            }
+
+            ref.current?.reset();
+            setIsPending(false);
+          },
+          onError: (error: Error) => {
+            console.error("Error during conversation stream:", error);
+            setIsPending(false);
+          },
+        },
+      });
+
+      await streamingClient
+        .collections("pg-essays")
+        .documents()
+        .search(searchParams);
+    } catch (error) {
+      console.error("Error during conversation:", error);
+      setIsPending(false);
     }
-    // const response = await chat(formData);
-    // if (!response) return;
-
-    // setConversation(({ messages: history }) => ({
-    //   id: response.id,
-    //   messages: [
-    //     ...history,
-    //     userMessage,
-    //     {
-    //       message: response.message,
-    //       sender: 'ai',
-    //       sources: response.sources,
-    //     },
-    //   ],
-    // }));
-  }
+  };
 
   return (
     <>
