@@ -6,7 +6,10 @@ import { Client } from "typesense";
 import { useCallback, useMemo, useRef } from "react";
 import { SearchParams } from "typesense/lib/Typesense/Types";
 import type { FormProps } from "@/components/Form";
-import { DocumentSchema, SearchResponse } from "typesense/lib/Typesense/Documents";
+import {
+  DocumentSchema,
+  SearchResponse,
+} from "typesense/lib/Typesense/Documents";
 
 const INITIAL_MESSAGES = [
   "What is the Maker's Schedule?",
@@ -56,19 +59,9 @@ export default function EmptyChat({ onRequest }: FormProps) {
           q: message,
           query_by: "embedding",
           conversation: true,
-          conversation_model_id:
-            process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID ??
-            "gpt-4-turbo-model",
+          conversation_model_id: process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID,
           conversation_stream: true,
           exclude_fields: "embedding",
-        };
-
-        if (id) {
-          searchParams.conversation_id = id;
-        }
-
-        const streamingClient = new Client({
-          ...TYPESENSE_CONFIG,
           streamConfig: {
             onChunk: (data: { conversation_id: string; message: string }) => {
               messageRef.current += data.message;
@@ -113,9 +106,13 @@ export default function EmptyChat({ onRequest }: FormProps) {
               console.error("Error during conversation stream:", error);
             },
           },
-        });
+        };
 
-        await streamingClient
+        if (id) {
+          searchParams.conversation_id = id;
+        }
+
+        await typesenseClient
           .collections("pg-essays")
           .documents()
           .search(searchParams);
