@@ -18,26 +18,13 @@ const INITIAL_MESSAGES = [
   "Perspective on the role of hacker culture in society",
 ];
 
-const TYPESENSE_CONFIG = {
-  nodes: [
-    {
-      host: process.env.NEXT_PUBLIC_TYPESENSE_HOST ?? "localhost",
-      port: Number(process.env.NEXT_PUBLIC_TYPESENSE_PORT ?? 8108),
-      protocol: process.env.NEXT_PUBLIC_TYPESENSE_PROTOCOL ?? "http",
-    },
-  ],
-  connectionTimeoutSeconds: 180,
-  apiKey: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY ?? "",
-};
 
-export default function EmptyChat({ onRequest }: FormProps) {
+export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
   const [conversation, setConversation] = useConversationState();
 
   const messageRef = useRef("");
   const sourcesRef = useRef<Message["sources"]>([]);
   const conversationIdRef = useRef<string | undefined>(undefined);
-
-  const typesenseClient = useMemo(() => new Client(TYPESENSE_CONFIG), []);
 
   const sendMessage = useCallback(
     async (message: string) => {
@@ -59,7 +46,8 @@ export default function EmptyChat({ onRequest }: FormProps) {
           q: message,
           query_by: "embedding",
           conversation: true,
-          conversation_model_id: process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID,
+          conversation_model_id:
+            process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID,
           conversation_stream: true,
           exclude_fields: "embedding",
           streamConfig: {

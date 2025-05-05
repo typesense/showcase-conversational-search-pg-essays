@@ -87,9 +87,10 @@ function SubmitButton() {
 
 export interface FormProps {
   onRequest: (user: Message) => void;
+  typesenseClient: Client;
 }
 
-export default function Form() {
+export default function Form({typesenseClient}: {typesenseClient: Client}) {
   const ref = useRef<HTMLFormElement>(null);
   const [conversation, setConversation] = useContext(ConversationContext);
   const [isPending, setIsPending] = useState(false);
@@ -114,30 +115,12 @@ export default function Form() {
         q: message,
         query_by: "embedding",
         conversation: true,
-        conversation_model_id: "gpt-4-turbo-model",
+        conversation_model_id:
+          process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID,
         conversation_stream: true,
         exclude_fields: "embedding",
-      };
-
-      if (id) {
-        searchParams.conversation_id = id;
-      }
-
-      let currentMessage = "";
-      let currentSources: Message["sources"] = [];
-      let conversationId = id;
-
-      const streamingClient = new Client({
-        apiKey: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY ?? "",
-        nodes: [
-          {
-            host: process.env.NEXT_PUBLIC_TYPESENSE_HOST ?? "localhost",
-            port: Number(process.env.NEXT_PUBLIC_TYPESENSE_PORT ?? 8108),
-            protocol: process.env.NEXT_PUBLIC_TYPESENSE_PROTOCOL ?? "http",
-          },
-        ],
         streamConfig: {
-          onChunk: (data: { conversation_id: string; message: string }) => {
+          onChunk: (data) => {
             currentMessage += data.message;
             if (data.conversation_id) {
               conversationId = data.conversation_id;
@@ -156,7 +139,7 @@ export default function Form() {
               ],
             });
           },
-          onComplete: async (data: any) => {
+          onComplete: async (data) => {
             if (data.hits && data.conversation) {
               currentSources = await hitsToSources(data.hits);
               conversationId = data.conversation.conversation_id?.toString();
@@ -183,9 +166,17 @@ export default function Form() {
             setIsPending(false);
           },
         },
-      });
+      };
 
-      await streamingClient
+      if (id) {
+        searchParams.conversation_id = id;
+      }
+
+      let currentMessage = "";
+      let currentSources: Message["sources"] = [];
+      let conversationId = id;
+
+      await typesenseClient
         .collections("pg-essays")
         .documents()
         .search(searchParams);
