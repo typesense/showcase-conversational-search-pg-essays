@@ -1,11 +1,19 @@
-'use client';
+"use client";
 
-import { Message, chat } from '@/lib/actions';
-import { PaperPlaneRight } from '@phosphor-icons/react';
-import autosize from 'autosize';
-import { KeyboardEventHandler, useEffect, useRef } from 'react';
-import { useFormStatus } from 'react-dom';
-import { useConversationState } from './ConversationContext';
+import { Message, hitsToSources } from "@/lib/actions";
+import { PaperPlaneRight } from "@phosphor-icons/react";
+import autosize from "autosize";
+import {
+  KeyboardEventHandler,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useFormStatus } from "react-dom";
+import { ConversationContext } from "./ConversationContext";
+import { Client } from "typesense";
+import { SearchParams } from "typesense/lib/Typesense/Types";
 
 function Textarea() {
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -19,7 +27,7 @@ function Textarea() {
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (e) => {
     if (!ref.current) return;
 
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
 
       if (!pending) {
@@ -36,6 +44,7 @@ function Textarea() {
       rows={1}
       placeholder="Ask Typesense..."
       onKeyDown={handleKeyDown}
+      disabled={pending}
       required
     />
   );
@@ -78,11 +87,104 @@ function SubmitButton() {
 
 export interface FormProps {
   onRequest: (user: Message) => void;
+  typesenseClient: Client;
 }
 
-export default function Form({ onRequest }: FormProps) {
+export default function Form({typesenseClient}: {typesenseClient: Client}) {
   const ref = useRef<HTMLFormElement>(null);
-  const [{ id: conversationId }, setConversation] = useConversationState();
+  const [conversation, setConversation] = useContext(ConversationContext);
+  const [isPending, setIsPending] = useState(false);
+  let id = conversation.id;
+
+  const updateForm = async (formData: FormData) => {
+    const message = formData.get("message");
+    if (typeof message !== "string") return;
+
+    setIsPending(true);
+    const userMessage: Message = { message, sender: "user", sources: [] };
+
+    setConversation(({ messages: history }) => ({
+      id: conversation.id,
+      messages: [...history, userMessage],
+    }));
+
+    const currentHistory = conversation.messages;
+
+    try {
+      const searchParams: SearchParams = {
+        q: message,
+        query_by: "embedding",
+        conversation: true,
+        conversation_model_id:
+          process.env.NEXT_PUBLIC_TYPESENSE_CONVERSATION_MODEL_ID,
+        conversation_stream: true,
+        exclude_fields: "embedding",
+        streamConfig: {
+          onChunk: (data) => {
+            currentMessage += data.message;
+            if (data.conversation_id) {
+              conversationId = data.conversation_id;
+            }
+
+            setConversation({
+              id: conversationId,
+              messages: [
+                ...currentHistory,
+                userMessage,
+                {
+                  message: currentMessage,
+                  sender: "ai",
+                  sources: currentSources,
+                },
+              ],
+            });
+          },
+          onComplete: async (data) => {
+            if (data.hits && data.conversation) {
+              currentSources = await hitsToSources(data.hits);
+              conversationId = data.conversation.conversation_id?.toString();
+
+              setConversation({
+                id: conversationId,
+                messages: [
+                  ...currentHistory,
+                  userMessage,
+                  {
+                    message: currentMessage,
+                    sender: "ai",
+                    sources: currentSources,
+                  },
+                ],
+              });
+            }
+
+            ref.current?.reset();
+            setIsPending(false);
+          },
+          onError: (error: Error) => {
+            console.error("Error during conversation stream:", error);
+            setIsPending(false);
+          },
+        },
+      };
+
+      if (id) {
+        searchParams.conversation_id = id;
+      }
+
+      let currentMessage = "";
+      let currentSources: Message["sources"] = [];
+      let conversationId = id;
+
+      await typesenseClient
+        .collections("pg-essays")
+        .documents()
+        .search(searchParams);
+    } catch (error) {
+      console.error("Error during conversation:", error);
+      setIsPending(false);
+    }
+  };
 
   return (
     <>
@@ -90,32 +192,9 @@ export default function Form({ onRequest }: FormProps) {
         ref={ref}
         className="relative flex py-4 rounded-2xl bg-gradient-to-b from-gray-900 to-gray-950 shadow-lg"
         autoComplete="off"
-        action={async (formData) => {
-          const message = formData.get('message');
-          if (typeof message !== 'string') return;
-
-          const userMessage: Message = { message, sender: 'user', sources: [] };
-          onRequest(userMessage);
-
-          ref.current?.reset();
-          const response = await chat(formData);
-          if (!response) return;
-
-          setConversation(({ messages: history }) => ({
-            id: response.id,
-            messages: [
-              ...history,
-              userMessage,
-              {
-                message: response.message,
-                sender: 'ai',
-                sources: response.sources,
-              },
-            ],
-          }));
-        }}
+        action={updateForm}
       >
-        <input hidden name="conversation_id" value={conversationId} readOnly />
+        <input hidden name="conversation_id" value={id} readOnly />
         <Textarea />
         <SubmitButton />
       </form>

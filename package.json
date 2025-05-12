@@ -20,7 +20,7 @@
     "react-dom": "^18",
     "react-markdown": "^9.0.1",
     "tsx": "^4.7.1",
-    "typesense": "2.0.0-0"
+    "typesense": "^2.1.0-5"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.12.1",

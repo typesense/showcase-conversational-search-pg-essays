@@ -1,20 +1,33 @@
-'use client';
+"use client";
 
-import type { Message } from '@/lib/actions';
-import { UserCircle } from '@phosphor-icons/react/dist/ssr';
-import { useEffect, useOptimistic } from 'react';
-import Markdown from 'react-markdown';
-import { useConversationState } from './ConversationContext';
-import EmptyChat from './EmptyChat';
-import Form from './Form';
+import type { Message } from "@/lib/actions";
+import { UserCircle } from "@phosphor-icons/react/dist/ssr";
+import { useEffect, useMemo, useOptimistic } from "react";
+import Markdown from "react-markdown";
+import { useConversationState } from "./ConversationContext";
+import EmptyChat from "./EmptyChat";
+import Form from "./Form";
+import { Client } from "typesense";
 
 interface MessageProps {
   sender: { name: string; avatar?: string };
   message: string;
-  sources: Message['sources'];
+  sources: Message["sources"];
   isLoading?: boolean;
   isMarkdown?: boolean;
 }
+
+const TYPESENSE_CONFIG = {
+  nodes: [
+    {
+      host: process.env.NEXT_PUBLIC_TYPESENSE_HOST ?? "localhost",
+      port: Number(process.env.NEXT_PUBLIC_TYPESENSE_PORT ?? 8108),
+      protocol: process.env.NEXT_PUBLIC_TYPESENSE_PROTOCOL ?? "http",
+    },
+  ],
+  connectionTimeoutSeconds: 180,
+  apiKey: process.env.NEXT_PUBLIC_TYPESENSE_SEARCH_API_KEY ?? "",
+};
 
 function ChatMessage({
   sender,
@@ -83,46 +96,49 @@ function ChatMessage({
 }
 
 export default function Chat() {
-  const [{ messages }] = useConversationState();
+  const [{ messages }, setConversation] = useConversationState();
   const [optimisticMessages, addOptimisticMessage] = useOptimistic(
     messages,
     (state, newMessages: Message[]) => [...state, ...newMessages]
   );
-
+  const typesenseClient = useMemo(() => new Client(TYPESENSE_CONFIG), []);
   useEffect(() => {
     window.scrollTo({
       top: document.body.scrollHeight,
-      behavior: 'smooth',
+      behavior: "smooth",
     });
   }, [optimisticMessages]);
 
   const addResponseLoadingPlaceholder = (userMessage: Message) => {
     addOptimisticMessage([
       userMessage,
-      { sender: 'ai', message: '', isLoading: true, sources: [] },
+      { sender: "ai", message: "", isLoading: true, sources: [] },
     ]);
   };
 
   return (
     <main className="flex-grow w-full relative max-w-xl mx-auto flex flex-col">
       {optimisticMessages.length === 0 ? (
-        <EmptyChat onRequest={addResponseLoadingPlaceholder} />
+        <EmptyChat
+          onRequest={addResponseLoadingPlaceholder}
+          typesenseClient={typesenseClient}
+        />
       ) : (
         <div className="flex flex-col pt-6 divide-y divide-gray-100">
           {optimisticMessages.map(
             ({ sender, message, sources, isLoading }, i) => (
               <ChatMessage
                 sender={
-                  sender === 'user'
-                    ? { name: 'You' }
+                  sender === "user"
+                    ? { name: "You" }
                     : {
-                        name: 'Typesense',
-                        avatar: 'https://github.com/typesense.png',
+                        name: "Typesense",
+                        avatar: "https://github.com/typesense.png",
                       }
                 }
                 message={message}
                 isLoading={isLoading}
-                isMarkdown={sender === 'ai'}
+                isMarkdown={sender === "ai"}
                 sources={sources}
                 key={i}
               />
@@ -132,7 +148,7 @@ export default function Chat() {
       )}
 
       <div className="mt-auto sticky inset-x-0 bottom-0 pt-12 pb-4 xs:pb-8 bg-gradient-to-b from-transparent via-[40%] via-white to-white">
-        <Form onRequest={addResponseLoadingPlaceholder} />
+        <Form typesenseClient={typesenseClient} />
       </div>
     </main>
   );
