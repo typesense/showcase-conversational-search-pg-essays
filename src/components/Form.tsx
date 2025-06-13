@@ -90,26 +90,38 @@ export interface FormProps {
   typesenseClient: Client;
 }
 
-export default function Form({typesenseClient}: {typesenseClient: Client}) {
+export default function Form({ typesenseClient }: { typesenseClient: Client }) {
   const ref = useRef<HTMLFormElement>(null);
   const [conversation, setConversation] = useContext(ConversationContext);
   const [isPending, setIsPending] = useState(false);
   let id = conversation.id;
 
-  const updateForm = async (formData: FormData) => {
-    const message = formData.get("message");
-    if (typeof message !== "string") return;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-    setIsPending(true);
+    const formData = new FormData(e.currentTarget);
+    const message = formData.get("message");
+    if (typeof message !== "string" || !message.trim()) return;
+
     const userMessage: Message = { message, sender: "user", sources: [] };
 
     setConversation(({ messages: history }) => ({
       id: conversation.id,
-      messages: [...history, userMessage],
+      messages: [
+        ...history,
+        userMessage,
+        { message: "", sender: "ai", sources: [], isLoading: true },
+      ],
     }));
 
-    const currentHistory = conversation.messages;
+    ref.current?.reset();
 
+    const currentHistory = [...conversation.messages, userMessage];
+
+    performSearch(message, currentHistory);
+  };
+
+  const performSearch = async (message: string, currentHistory: Message[]) => {
     try {
       const searchParams: SearchParams<EssayDocument> = {
         q: message,
@@ -130,11 +142,11 @@ export default function Form({typesenseClient}: {typesenseClient: Client}) {
               id: conversationId,
               messages: [
                 ...currentHistory,
-                userMessage,
                 {
                   message: currentMessage,
                   sender: "ai",
                   sources: currentSources,
+                  isLoading: false, // No longer loading once we start receiving chunks
                 },
               ],
             });
@@ -148,17 +160,16 @@ export default function Form({typesenseClient}: {typesenseClient: Client}) {
                 id: conversationId,
                 messages: [
                   ...currentHistory,
-                  userMessage,
                   {
                     message: currentMessage,
                     sender: "ai",
                     sources: currentSources,
+                    isLoading: false, // Ensure loading is false when complete
                   },
                 ],
               });
             }
 
-            ref.current?.reset();
             setIsPending(false);
           },
           onError: (error: Error) => {
@@ -192,7 +203,7 @@ export default function Form({typesenseClient}: {typesenseClient: Client}) {
         ref={ref}
         className="relative flex py-4 rounded-2xl bg-gradient-to-b from-gray-900 to-gray-950 shadow-lg"
         autoComplete="off"
-        action={updateForm}
+        onSubmit={handleSubmit}
       >
         <input hidden name="conversation_id" value={id} readOnly />
         <Textarea />
