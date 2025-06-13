@@ -17,7 +17,7 @@ export interface Message {
   }[];
 }
 
-interface EssayDocument {
+export interface EssayDocument {
   title: string;
   text: string;
   url: string;
