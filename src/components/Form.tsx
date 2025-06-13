@@ -1,6 +1,6 @@
 "use client";
 
-import { Message, hitsToSources } from "@/lib/actions";
+import { EssayDocument, Message, hitsToSources } from "@/lib/actions";
 import { PaperPlaneRight } from "@phosphor-icons/react";
 import autosize from "autosize";
 import {
@@ -111,7 +111,7 @@ export default function Form({typesenseClient}: {typesenseClient: Client}) {
     const currentHistory = conversation.messages;
 
     try {
-      const searchParams: SearchParams = {
+      const searchParams: SearchParams<EssayDocument> = {
         q: message,
         query_by: "embedding",
         conversation: true,

@@ -1,6 +1,6 @@
 "use client";
 
-import { Message, hitsToSources } from "@/lib/actions";
+import { EssayDocument, Message, hitsToSources } from "@/lib/actions";
 import { useConversationState } from "./ConversationContext";
 import { Client } from "typesense";
 import { useCallback, useMemo, useRef } from "react";
@@ -17,7 +17,6 @@ const INITIAL_MESSAGES = [
   "What are the advantages and disadvantages of a startup being located in Silicon Valley?",
   "Perspective on the role of hacker culture in society",
 ];
-
 
 export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
   const [conversation, setConversation] = useConversationState();
@@ -42,7 +41,7 @@ export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
       });
 
       try {
-        const searchParams: SearchParams = {
+        const searchParams: SearchParams<EssayDocument> = {
           q: message,
           query_by: "embedding",
           conversation: true,
