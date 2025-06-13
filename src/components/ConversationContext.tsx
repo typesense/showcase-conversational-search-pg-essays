@@ -15,7 +15,7 @@ export interface ConversationState {
   messages: Message[];
 }
 
-const ConversationContext = createContext<
+export const ConversationContext = createContext<
   [ConversationState, Dispatch<SetStateAction<ConversationState>>]
 >([
   {
