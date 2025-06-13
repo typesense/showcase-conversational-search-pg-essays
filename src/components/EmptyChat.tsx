@@ -100,7 +100,7 @@ export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
         }
 
         await typesenseClient
-          .collections("pg-essays")
+          .collections<EssayDocument>("pg-essays")
           .documents()
           .search(searchParams);
       } catch (error) {

@@ -177,7 +177,7 @@ export default function Form({typesenseClient}: {typesenseClient: Client}) {
       let conversationId = id;
 
       await typesenseClient
-        .collections("pg-essays")
+        .collections<EssayDocument>("pg-essays")
         .documents()
         .search(searchParams);
     } catch (error) {
