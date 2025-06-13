@@ -28,7 +28,6 @@ export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
   const sendMessage = useCallback(
     async (message: string) => {
       const userMessage: Message = { message, sender: "user", sources: [] };
-      onRequest(userMessage);
 
       const currentHistory = conversation.messages;
       const id = conversation.id;
@@ -37,7 +36,11 @@ export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
 
       setConversation({
         id,
-        messages: [...currentHistory, userMessage],
+        messages: [
+          ...currentHistory,
+          userMessage,
+          { message: "", sender: "ai", sources: [], isLoading: true },
+        ],
       });
 
       try {
@@ -65,6 +68,7 @@ export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
                     message: messageRef.current,
                     sender: "ai",
                     sources: sourcesRef.current,
+                    isLoading: false,
                   },
                 ],
               });
@@ -84,6 +88,7 @@ export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
                       message: messageRef.current,
                       sender: "ai",
                       sources: sourcesRef.current,
+                      isLoading: false,
                     },
                   ],
                 });
