@@ -69,7 +69,7 @@ export default function EmptyChat({ onRequest, typesenseClient }: FormProps) {
                 ],
               });
             },
-            onComplete: async (data: SearchResponse<DocumentSchema>) => {
+            onComplete: async (data) => {
               if (data.hits && data.conversation) {
                 sourcesRef.current = await hitsToSources(data.hits);
                 conversationIdRef.current =
